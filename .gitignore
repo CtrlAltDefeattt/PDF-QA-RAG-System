@@ -1,4 +1,6 @@
-venv/
-env/
-.venv/
-.pyc
+backend/venv/
+backend/env/
+backend/.venv/
+
+**/__pycache__/
+**/*.pyc
