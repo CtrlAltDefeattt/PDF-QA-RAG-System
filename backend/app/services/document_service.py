@@ -40,3 +40,48 @@ class DocumentService:
         db.refresh(document)
 
         return document
+    
+    @staticmethod
+    def get_documents(
+        db: Session
+    ):
+        return (
+            db.query(Document)
+            .order_by(Document.created_at.desc())
+            .all()
+        )
+    
+    @staticmethod
+    def get_document_by_id(
+        document_id: int,
+        db: Session
+    ):
+        return (
+            db.query(Document)
+            .filter(Document.id == document_id)
+            .first()
+        )
+    
+    @staticmethod
+    def delete_document(
+        document_id: int,
+        db: Session
+    ):
+
+        document = (
+            db.query(Document)
+            .filter(Document.id == document_id)
+            .first()
+        )
+
+        if not document:
+            return None
+
+        if os.path.exists(document.filepath):
+            os.remove(document.filepath)
+
+        db.delete(document)
+
+        db.commit()
+
+        return document

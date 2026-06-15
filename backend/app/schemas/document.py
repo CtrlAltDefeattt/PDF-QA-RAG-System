@@ -12,3 +12,13 @@ class DocumentResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class DocumentListResponse(BaseModel):
+    id: int
+    filename: str
+    file_size: int
+    status: str
+
+    model_config = {
+        "from_attributes": True
+    }
