@@ -3,7 +3,6 @@ from fastapi import UploadFile
 from fastapi import File
 from fastapi import Depends
 from fastapi import HTTPException
-
 from typing import List
 
 from sqlalchemy.orm import Session
@@ -12,6 +11,9 @@ from app.database.session import get_db
 
 from app.services.document_service import (
     DocumentService
+)
+from app.services.ingestion_service import (
+    IngestionService
 )
 
 from app.schemas.document import (
@@ -43,6 +45,11 @@ async def upload_document(
     document = DocumentService.save_document(
         file=file,
         db=db
+    )
+
+    IngestionService.process_document(
+        document.id,
+        db
     )
 
     return document
