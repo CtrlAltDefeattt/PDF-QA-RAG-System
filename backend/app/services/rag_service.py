@@ -5,32 +5,67 @@ from google.genai.errors import ServerError, APIError
 from app.rag.retrievers.document_retriever import DocumentRetriever
 from app.rag.prompts.prompt_builder import PromptBuilder
 from app.rag.generators.gemini_generator import GeminiGenerator
+from sqlalchemy.orm import Session
+from app.models.chat_history import ChatHistory
+from app.services.vector_store_services import VectorStoreService
 
 class RAGService:
     def __init__(self, vector_store):
         self.retriever = DocumentRetriever(vector_store)
         self.generator = GeminiGenerator()
+        self.vector_store = VectorStoreService.get_instance()
 
-    def _normalize_query(self, query: str) -> str:
+    
+    def _rewrite_query_with_history(self, question: str, history: str) -> str:
         """
-        Strips conversational framing phrases to convert an inquiry 
-        into a declarative keyword structure matching document notes.
+        Uses Gemini to turn a conversational follow-up question into a standalone 
+        search query if chat history exists.
         """
-        lowered = query.lower().strip()
-        # Remove common conversational prefixes
-        lowered = re.sub(r'^(explain|what is|tell me about|show me|define|give me information on)\s+', '', lowered)
-        # Remove trailing question marks
-        lowered = re.sub(r'\?+$', '', lowered)
-        return lowered.strip()
+        if not history.strip():
+            return question
 
-    def ask(self, question: str) -> dict:
-        """
-        Runs the end-to-end RAG pipeline with query normalization 
-        and an exponential decay confidence firewall.
-        """
-        # 1. Normalize the incoming query text
-        search_query = self._normalize_query(question)
-        print(f"🔍 Original: '{question}' -> Normalized Search: '{search_query}'")
+        rewrite_prompt = f"""
+Given the following chat history and a follow-up question, rewrite the follow-up question into a standalone question that contains all necessary context to be searched in a document index. 
+Do NOT answer the question. Just return the rewritten question.
+
+CHAT HISTORY:
+{history}
+
+FOLLOW-UP QUESTION:
+{question}
+
+STANDALONE QUESTION:"""
+
+        try:
+            # Generate the context-heavy question using your existing generator
+            rewritten_question = self.generator.generate(rewrite_prompt)
+            return rewritten_question.strip()
+        except Exception as e:
+            logger.warning(f"Failed to rewrite query, falling back to original: {e}")
+            return question
+        
+    def _get_recent_history(self, session_id: int, db: Session, limit: int = 5) -> str:
+        
+        history_records = (
+            db.query(ChatHistory)
+            .filter(ChatHistory.session_id == session_id)
+            .order_by(ChatHistory.created_at.asc()) # Get them in chronological order
+            .limit(limit)
+            .all()
+        )
+        
+        history_text = ""
+        for record in history_records:
+            history_text += f"User: {record.question}\nAssistant: {record.answer}\n\n"
+        return history_text
+    
+    def ask(self,session_id: int, question: str,db: Session) -> dict:
+        
+        conversation_history = self._get_recent_history(session_id, db, limit=5)
+        context_rich_question = self._rewrite_query_with_history(question, conversation_history)
+
+        search_query = self._normalize_query(context_rich_question)
+        print(f"🔄 Original: '{question}' -> Context-Rich: '{context_rich_question}' -> Search Query: '{search_query}'")
 
         # 2. Fetch retrieval results using the clean keyword vector
         retrieval_result = self.retriever.retrieve(search_query, top_k=3)
@@ -57,14 +92,25 @@ class RAGService:
                 "confidence_score": confidence
             }
         
-        # 5. Construct prompt and invoke Gemini for strong matches
-        prompt = PromptBuilder.build_rag_prompt(question, chunks)
+        prompt = PromptBuilder.build_rag_prompt(
+            question=question, 
+            chunks=chunks, 
+            history=conversation_history
+        )
         
         max_retries = 3
         delay = 2
         for attempt in range(max_retries):
             try:
                 answer = self.generator.generate(prompt)
+                new_history = ChatHistory(
+                    session_id=session_id,
+                    question=question,
+                    answer=answer,
+                    confidence_score=confidence
+                )
+                db.add(new_history)
+                db.commit()
                 return {
                     "answer": answer,
                     "sources": chunks,
@@ -82,3 +128,15 @@ class RAGService:
                     "sources": [],
                     "confidence_score": 0.0
                 }
+            
+    def _normalize_query(self, query: str) -> str:
+        """
+        Strips conversational framing phrases to convert an inquiry 
+        into a declarative keyword structure matching document notes.
+        """
+        lowered = query.lower().strip()
+        # Remove common conversational prefixes
+        lowered = re.sub(r'^(explain|what is|tell me about|show me|define|give me information on)\s+', '', lowered)
+        # Remove trailing question marks
+        lowered = re.sub(r'\?+$', '', lowered)
+        return lowered.strip()        

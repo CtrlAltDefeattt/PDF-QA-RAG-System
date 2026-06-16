@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 
 class ChatRequest(BaseModel):
+    session_id:int
     question: str
 
 class SourceResponse(BaseModel):

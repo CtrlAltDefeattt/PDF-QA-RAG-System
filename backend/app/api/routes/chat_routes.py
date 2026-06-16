@@ -43,7 +43,9 @@ def chat(
     """
     try:
         # Execute the verified RAG pipeline
-        result = rag_service.ask(request.question)
+        result = rag_service.ask(session_id=request.session_id, 
+        question=request.question, 
+        db=db)
         
         # Returns: {"answer": ..., "confidence_score": ..., "sources": [...]}
         return result
