@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { nanoid } from "nanoid";
+import { AxiosError } from "axios";
 
 import Sidebar from "../components/layout/Sidebar";
 import Header from "../components/layout/Header";
@@ -14,6 +15,7 @@ const STORAGE_KEY = "active-session";
 
 const Dashboard = () => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
 
   const [activeSession, setActiveSession] =
     useState<number | undefined>(() => {
@@ -24,6 +26,8 @@ const Dashboard = () => {
     });
 
   const chatMutation = useChat();
+  const isResponding =
+    chatMutation.isPending || isStreaming;
 
   const handleSelectSession = (
     sessionId: number
@@ -36,10 +40,77 @@ const Dashboard = () => {
     );
   };
 
+  const revealAssistantMessage = (
+    message: Omit<Message, "id">
+  ) => {
+    const messageId = nanoid();
+    const fullContent = message.content;
+    const stepSize = Math.max(
+      2,
+      Math.ceil(fullContent.length / 110)
+    );
+    let cursor = 0;
+
+    setIsStreaming(true);
+    setMessages((prev) => [
+      ...prev,
+      {
+        ...message,
+        id: messageId,
+        content: "",
+        status: "streaming"
+      }
+    ]);
+
+    const tick = () => {
+      cursor = Math.min(
+        fullContent.length,
+        cursor + stepSize
+      );
+
+      setMessages((prev) =>
+        prev.map((item) =>
+          item.id === messageId
+            ? {
+                ...item,
+                content: fullContent.slice(0, cursor),
+                status:
+                  cursor >= fullContent.length
+                    ? undefined
+                    : "streaming"
+              }
+            : item
+        )
+      );
+
+      if (cursor < fullContent.length) {
+        window.setTimeout(tick, 12);
+      } else {
+        setIsStreaming(false);
+      }
+    };
+
+    window.setTimeout(tick, 80);
+  };
+
   const sendMessage = async (
     question: string
   ) => {
-    if (!activeSession) return;
+    if (isResponding) return;
+
+    if (!activeSession) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: nanoid(),
+          role: "assistant",
+          content:
+            "Create or select a session before asking a question.",
+          status: "error"
+        }
+      ]);
+      return;
+    }
 
     const userMessage: Message = {
       id: nanoid(),
@@ -59,36 +130,28 @@ const Dashboard = () => {
           question
         });
 
-      const assistantMessage: Message = {
-        id: nanoid(),
+      revealAssistantMessage({
         role: "assistant",
         content: response.answer,
         confidence:
           response.confidence_score,
         sources: response.sources
-      };
-
+      });
+    } catch (error) {
       setMessages((prev) => [
         ...prev,
-        assistantMessage
-      ]);
-    } catch {
-      const errorMessage: Message = {
-        id: nanoid(),
-        role: "assistant",
-        content:
-          "Unable to process request."
-      };
-
-      setMessages((prev) => [
-        ...prev,
-        errorMessage
+        {
+          id: nanoid(),
+          role: "assistant",
+          content: getChatErrorMessage(error),
+          status: "error"
+        }
       ]);
     }
   };
 
   return (
-    <div className="h-screen bg-zinc-950 text-zinc-100 flex">
+    <div className="flex h-screen flex-col bg-zinc-950 text-zinc-100 lg:flex-row">
 
       <Sidebar
         activeSession={activeSession}
@@ -97,19 +160,22 @@ const Dashboard = () => {
         }
       />
 
-      <main className="flex-1 flex flex-col">
+      <main className="flex min-h-0 flex-1 flex-col">
 
         <Header />
 
-        <div className="flex-1 overflow-hidden">
+        <div className="min-h-0 flex-1 overflow-hidden">
           <ChatWindow
             messages={messages}
             loading={chatMutation.isPending}
+            hasActiveSession={Boolean(activeSession)}
+            onExampleSelect={sendMessage}
           />
         </div>
 
         <ChatInput
-          loading={chatMutation.isPending}
+          loading={isResponding}
+          hasActiveSession={Boolean(activeSession)}
           onSend={sendMessage}
         />
 
@@ -117,6 +183,20 @@ const Dashboard = () => {
 
     </div>
   );
+};
+
+const getChatErrorMessage = (error: unknown) => {
+  if (error instanceof AxiosError) {
+    const detail = error.response?.data?.detail;
+
+    if (typeof detail === "string") {
+      return detail;
+    }
+
+    return "The backend did not return a valid chat response. Check the API server and try again.";
+  }
+
+  return "Unable to process the request. Check the backend logs and try again.";
 };
 
 export default Dashboard;

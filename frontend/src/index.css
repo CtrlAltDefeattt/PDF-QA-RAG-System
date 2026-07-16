@@ -20,6 +20,12 @@ body {
   font-family: Inter, system-ui, sans-serif;
 }
 
+button,
+textarea,
+input {
+  font: inherit;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -39,4 +45,18 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #52525b;
+}
+
+@keyframes progress {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  50% {
+    transform: translateX(70%);
+  }
+
+  100% {
+    transform: translateX(240%);
+  }
 }

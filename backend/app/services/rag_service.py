@@ -1,3 +1,4 @@
+import logging
 import time
 import re
 import math
@@ -8,6 +9,8 @@ from app.rag.generators.gemini_generator import GeminiGenerator
 from sqlalchemy.orm import Session
 from app.models.chat_history import ChatHistory
 from app.services.vector_store_services import VectorStoreService
+
+logger = logging.getLogger(__name__)
 
 class RAGService:
     def __init__(self, vector_store):
@@ -65,7 +68,12 @@ STANDALONE QUESTION:"""
         context_rich_question = self._rewrite_query_with_history(question, conversation_history)
 
         search_query = self._normalize_query(context_rich_question)
-        print(f"🔄 Original: '{question}' -> Context-Rich: '{context_rich_question}' -> Search Query: '{search_query}'")
+        logger.info(
+            "Original question=%r context_question=%r search_query=%r",
+            question,
+            context_rich_question,
+            search_query,
+        )
 
         # 2. Fetch retrieval results using the clean keyword vector
         retrieval_result = self.retriever.retrieve(search_query, top_k=3)

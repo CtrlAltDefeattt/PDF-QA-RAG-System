@@ -12,11 +12,11 @@ const Sidebar = ({
   onSelectSession
 }: Props) => {
   return (
-    <aside className="w-[340px] border-r border-zinc-800 bg-zinc-950 overflow-y-auto">
-      <div className="p-5 space-y-6">
+    <aside className="max-h-[42vh] w-full shrink-0 overflow-y-auto border-b border-zinc-800 bg-zinc-950 lg:h-screen lg:max-h-none lg:w-[340px] lg:border-b-0 lg:border-r">
+      <div className="space-y-6 p-4 sm:p-5">
 
         <section>
-          <h2 className="font-semibold mb-3">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">
             Sessions
           </h2>
 
@@ -27,7 +27,7 @@ const Sidebar = ({
         </section>
 
         <section>
-          <h2 className="font-semibold mb-3">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">
             Upload PDF
           </h2>
 
@@ -35,7 +35,7 @@ const Sidebar = ({
         </section>
 
         <section>
-          <h2 className="font-semibold mb-3">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">
             Documents
           </h2>
 

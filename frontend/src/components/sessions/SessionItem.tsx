@@ -16,20 +16,24 @@ const SessionItem = ({
 }: Props) => {
   return (
     <div
-      className={`flex justify-between items-center p-3 rounded-xl cursor-pointer ${
+      className={`flex cursor-pointer items-center justify-between gap-3 rounded-xl border p-3 transition ${
         active
-          ? "bg-blue-600"
-          : "bg-zinc-900"
+          ? "border-cyan-500/40 bg-cyan-500/15 text-cyan-100"
+          : "border-zinc-800 bg-zinc-900 text-zinc-200 hover:border-zinc-700"
       }`}
       onClick={() => onSelect(session.id)}
     >
-      <span>{session.session_name}</span>
+      <span className="min-w-0 truncate text-sm font-medium">
+        {session.session_name}
+      </span>
 
       <button
         onClick={(e) => {
           e.stopPropagation();
           onDelete(session.id);
         }}
+        className="shrink-0 rounded-md p-1 text-zinc-500 transition hover:bg-zinc-800 hover:text-red-300"
+        aria-label={`Delete ${session.session_name}`}
       >
         <Trash2 size={14} />
       </button>

@@ -1,5 +1,6 @@
 import { Message } from "../../types/chat";
 import ConfidenceBadge from "./ConfidenceBadge";
+import MarkdownContent from "./MarkdownContent";
 import SourcePanel from "./SourcePanel";
 
 interface Props {
@@ -16,23 +17,34 @@ const ChatMessage = ({ message }: Props) => {
       }`}
     >
       <div
-        className={`max-w-4xl rounded-2xl px-4 py-3 ${
+        className={`w-fit max-w-[min(100%,56rem)] rounded-2xl px-4 py-3 shadow-sm ${
           isUser
-            ? "bg-blue-600 text-white"
-            : "bg-zinc-900 text-zinc-100"
+            ? "bg-cyan-600 text-white"
+            : message.status === "error"
+              ? "border border-red-500/30 bg-red-950/30 text-red-100"
+              : "border border-zinc-800 bg-zinc-900 text-zinc-100"
         }`}
       >
-        <div className="whitespace-pre-wrap">
-          {message.content}
-        </div>
+        {isUser ? (
+          <div className="whitespace-pre-wrap text-sm leading-6 sm:text-[15px]">
+            {message.content}
+          </div>
+        ) : (
+          <MarkdownContent content={message.content} />
+        )}
 
-        {!isUser && message.confidence && (
+        {!isUser && message.status === "streaming" && (
+          <span className="mt-3 inline-flex h-2 w-2 animate-pulse rounded-full bg-cyan-300" />
+        )}
+
+        {!isUser &&
+          typeof message.confidence === "number" && (
           <div className="mt-4">
             <ConfidenceBadge
               score={message.confidence}
             />
           </div>
-        )}
+          )}
 
         {!isUser && message.sources && (
           <SourcePanel sources={message.sources} />

@@ -3,19 +3,26 @@ import { KeyboardEvent, useState } from "react";
 
 interface Props {
   loading: boolean;
+  hasActiveSession: boolean;
   onSend: (message: string) => void;
 }
 
 const ChatInput = ({
   loading,
+  hasActiveSession,
   onSend
 }: Props) => {
   const [message, setMessage] = useState("");
 
-  const submit = () => {
-    if (!message.trim()) return;
+  const canSend =
+    Boolean(message.trim()) &&
+    !loading &&
+    hasActiveSession;
 
-    onSend(message);
+  const submit = () => {
+    if (!canSend) return;
+
+    onSend(message.trim());
     setMessage("");
   };
 
@@ -29,24 +36,29 @@ const ChatInput = ({
   };
 
   return (
-    <div className="border-t border-zinc-800 p-4">
-      <div className="flex gap-3">
+    <div className="border-t border-zinc-800 bg-zinc-950 p-3 sm:p-4">
+      <div className="mx-auto flex max-w-5xl gap-3">
         <textarea
           rows={2}
           value={message}
-          disabled={loading}
+          disabled={loading || !hasActiveSession}
           onChange={(e) =>
             setMessage(e.target.value)
           }
           onKeyDown={handleKeyDown}
-          placeholder="Ask about your PDFs..."
-          className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl p-3 resize-none outline-none"
+          placeholder={
+            hasActiveSession
+              ? "Ask about your PDFs..."
+              : "Create or select a session first"
+          }
+          className="min-h-[52px] flex-1 resize-none rounded-xl border border-zinc-700 bg-zinc-900 p-3 text-sm leading-6 text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
         />
 
         <button
-          disabled={loading}
+          disabled={!canSend}
           onClick={submit}
-          className="px-4 rounded-xl bg-blue-600 hover:bg-blue-500"
+          className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl bg-cyan-600 text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+          aria-label="Send message"
         >
           <Send size={18} />
         </button>
