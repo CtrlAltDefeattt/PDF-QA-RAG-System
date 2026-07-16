@@ -1,358 +1,363 @@
-# 📄 PDF QA RAG System
+# HyperRAG Engine
 
-> An end-to-end Retrieval-Augmented Generation (RAG) application that enables users to interact with PDF documents through natural language conversations using semantic search and Large Language Models.
+HyperRAG Engine is a full-stack Retrieval-Augmented Generation (RAG) application for asking grounded questions over PDF documents. Users can upload PDFs, create chat sessions, ask natural language questions, and receive Gemini-generated answers with confidence scores and expandable source citations.
 
-![Python](https://img.shields.io/badge/Python-3.11+-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green)
+The project is built as an interview-ready AI product, not just a backend demo. It includes a polished React interface, document ingestion, semantic retrieval, citation display, markdown answer rendering, loading states, error handling, and a deployment-friendly API configuration.
+
+![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688)
 ![React](https://img.shields.io/badge/React-Frontend-61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-Latest-blue)
-![LangChain](https://img.shields.io/badge/LangChain-RAG-orange)
-![FAISS](https://img.shields.io/badge/FAISS-VectorDB-red)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+![TypeScript](https://img.shields.io/badge/TypeScript-Strict-blue)
+![FAISS](https://img.shields.io/badge/FAISS-Vector_Search-red)
+![Gemini](https://img.shields.io/badge/Google_Gemini-LLM-4285F4)
 
----
+## Product Highlights
 
-## 📖 Overview
+- PDF upload and automatic ingestion
+- Text extraction with PyMuPDF
+- Recursive document chunking
+- Sentence Transformer embeddings
+- FAISS vector search
+- Google Gemini answer generation
+- Session-based chat workflow
+- Query rewriting using recent chat history
+- Confidence score for answers
+- Expandable source cards with page references
+- Markdown rendering for generated answers
+- Frontend streaming-style answer reveal
+- Loading, empty, and error states
+- Responsive desktop and mobile layout
+- Deployment-ready frontend API configuration via `VITE_API_URL`
 
-PDF QA RAG System is a full-stack AI application that allows users to upload PDF documents and ask questions in natural language. Instead of relying solely on an LLM's internal knowledge, the application retrieves the most relevant document sections using semantic search and provides context-aware answers.
+## Demo Flow
 
-The project demonstrates the complete workflow of a modern Retrieval-Augmented Generation (RAG) pipeline, including document ingestion, embedding generation, vector search, prompt engineering, and response generation.
+1. Start the backend and frontend.
+2. Create a chat session from the sidebar.
+3. Upload a PDF.
+4. Ask one of the example prompts from the welcome screen.
+5. Review the generated answer, confidence score, and supporting source snippets.
 
----
+Example prompts:
 
-# ✨ Features
+- `Summarize this document in 5 bullet points.`
+- `What are the most important interview questions in this PDF?`
+- `Create a quick study guide from the uploaded document.`
+- `What evidence supports the main recommendation?`
 
-- 📄 Upload one or multiple PDF documents
-- 🔍 Automatic text extraction
-- ✂️ Intelligent document chunking
-- 🧠 Semantic embedding generation
-- 📚 FAISS vector database indexing
-- 💬 Conversational question answering
-- 🎯 Context-aware responses
-- 📑 Source chunk retrieval
-- 🕒 Chat history management
-- ⚡ FastAPI REST APIs
-- 🎨 Modern React + TypeScript UI
+## Tech Stack
 
----
+### Frontend
 
-# 🛠 Tech Stack
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS
+- TanStack React Query
+- Axios
+- Lucide React
+- React Hot Toast
 
-## Backend
+### Backend
 
 - Python
 - FastAPI
 - SQLAlchemy
-- SQLite / PostgreSQL
-- LangChain
+- SQLite
+- PyMuPDF
 - FAISS
 - Sentence Transformers
+- Google GenAI SDK
 
-## Frontend
+### AI/RAG Pipeline
 
-- React
-- TypeScript
-- Tailwind CSS
-- Axios
+- PDF text extraction
+- Text cleaning
+- Chunking
+- Dense embeddings
+- Vector similarity search
+- Context-grounded prompt construction
+- Gemini response generation
+- Source citation return path
 
-## AI Stack
+## Architecture
 
-- Google Gemini API
-- Retrieval-Augmented Generation (RAG)
-- Semantic Search
-- Dense Vector Retrieval
-- Sentence Embeddings
+```mermaid
+flowchart TD
+    A[React UI] --> B[FastAPI Backend]
+    B --> C[Upload Service]
+    C --> D[PDF Text Extraction]
+    D --> E[Text Cleaning and Chunking]
+    E --> F[Sentence Transformer Embeddings]
+    F --> G[FAISS Vector Index]
+    A --> H[Chat Request]
+    H --> B
+    B --> I[Session History]
+    I --> J[Query Rewrite]
+    J --> K[Similarity Retrieval]
+    K --> G
+    K --> L[Prompt Builder]
+    L --> M[Google Gemini]
+    M --> N[Answer with Confidence and Sources]
+    N --> A
+```
 
----
-
-# 🏗 Architecture
+## Project Structure
 
 ```text
-                     ┌────────────────────┐
-                     │   Upload PDF(s)    │
-                     └─────────┬──────────┘
-                               │
-                               ▼
-                  ┌────────────────────────┐
-                  │   Text Extraction      │
-                  └─────────┬──────────────┘
-                            │
-                            ▼
-                  ┌────────────────────────┐
-                  │ Document Chunking      │
-                  └─────────┬──────────────┘
-                            │
-                            ▼
-                  ┌────────────────────────┐
-                  │ Generate Embeddings    │
-                  └─────────┬──────────────┘
-                            │
-                            ▼
-                  ┌────────────────────────┐
-                  │ FAISS Vector Database  │
-                  └─────────┬──────────────┘
-                            │
-              User Question │
-                            ▼
-                  ┌────────────────────────┐
-                  │ Similarity Search      │
-                  └─────────┬──────────────┘
-                            │
-                            ▼
-                  ┌────────────────────────┐
-                  │ Retrieve Context       │
-                  └─────────┬──────────────┘
-                            │
-                            ▼
-                  ┌────────────────────────┐
-                  │ Google Gemini LLM      │
-                  └─────────┬──────────────┘
-                            │
-                            ▼
-                     Contextual Answer
+PDF-QA-RAG-System/
+  backend/
+    app/
+      api/routes/          FastAPI route handlers
+      core/                App configuration
+      database/            SQLAlchemy database setup
+      models/              Database models
+      rag/                 RAG pipeline modules
+        chunkers/
+        cleaners/
+        embeddings/
+        generators/
+        loaders/
+        prompts/
+        retrievers/
+        vectorstore/
+      schemas/             Pydantic request/response schemas
+      services/            Business logic and orchestration
+      main.py              FastAPI application entry point
+    tests/                 Backend test suite
+    requirements.txt
+    .env
+  frontend/
+    src/
+      components/
+        chat/
+        documents/
+        layout/
+        sessions/
+      hooks/
+      pages/
+      services/
+      types/
+    package.json
+    vite.config.ts
+  .env.example
+  README.md
 ```
 
----
+## Getting Started
 
-# 📂 Project Structure
+### Prerequisites
 
-```
-PDF-QA-RAG/
-│
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   ├── core/
-│   │   ├── db/
-│   │   ├── models/
-│   │   ├── services/
-│   │   ├── utils/
-│   │   └── main.py
-│   │
-│   ├── requirements.txt
-│   └── .env
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   └── App.tsx
-│   │
-│   ├── package.json
-│   └── vite.config.ts
-│
-└── README.md
-```
+- Python 3.11+
+- Node.js 18+
+- Google Gemini API key
 
----
-
-# ⚙️ How It Works
-
-### 1️⃣ Upload Documents
-
-The user uploads one or more PDF documents.
-
-↓
-
-### 2️⃣ Document Processing
-
-The system extracts text from PDFs.
-
-↓
-
-### 3️⃣ Chunking
-
-Documents are split into overlapping chunks.
-
-↓
-
-### 4️⃣ Embedding Generation
-
-Sentence Transformers convert each chunk into dense vector embeddings.
-
-↓
-
-### 5️⃣ Vector Indexing
-
-Embeddings are stored inside a FAISS vector database.
-
-↓
-
-### 6️⃣ Ask Questions
-
-The user submits a natural language query.
-
-↓
-
-### 7️⃣ Semantic Retrieval
-
-The query embedding is compared against stored vectors to retrieve the most relevant document chunks.
-
-↓
-
-### 8️⃣ Answer Generation
-
-Retrieved context is provided to Google Gemini, which generates an accurate, grounded response.
-
----
-
-# 🚀 Installation
-
-## Clone Repository
-
-```bash
-git clone https://github.com/yourusername/pdf-qa-rag.git
-
-cd pdf-qa-rag
-```
-
----
-
-## Backend Setup
+### Backend Setup
 
 ```bash
 cd backend
-
 python -m venv venv
-
-# Windows
-venv\Scripts\activate
-
-# Linux / macOS
-source venv/bin/activate
-
-pip install -r requirements.txt
-
-uvicorn app.main:app --reload
 ```
 
----
+Windows:
 
-## Frontend Setup
+```bash
+venv\Scripts\activate
+```
+
+macOS/Linux:
+
+```bash
+source venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Create `backend/.env`:
+
+```env
+APP_NAME=HyperRAG Engine
+DATABASE_URL=sqlite:///./pdf_rag.db
+UPLOAD_DIR=app/uploads
+FAISS_INDEX_DIR=app/indexes
+GEMINI_API_KEY=replace_with_your_key
+```
+
+Run the backend:
+
+```bash
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+Health check:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+### Frontend Setup
 
 ```bash
 cd frontend
-
 npm install
-
 npm run dev
 ```
 
----
+The frontend runs at:
 
-# 🔑 Environment Variables
+```text
+http://127.0.0.1:5173/
+```
 
-Create a `.env` file inside the backend directory.
+For production deployments, set:
 
 ```env
-GOOGLE_API_KEY=your_google_gemini_api_key
-
-DATABASE_URL=sqlite:///database.db
-
-SECRET_KEY=your_secret_key
+VITE_API_URL=https://your-backend-url.com
 ```
 
----
+Then build:
 
-# 📡 API Endpoints
+```bash
+npm run build
+```
+
+## API Endpoints
 
 | Method | Endpoint | Description |
-|---------|----------|-------------|
-| POST | `/upload` | Upload PDF documents |
-| POST | `/chat` | Ask questions |
-| GET | `/documents` | List uploaded PDFs |
-| DELETE | `/documents/{id}` | Delete document |
-| GET | `/history` | Retrieve chat history |
+| --- | --- | --- |
+| `GET` | `/health` | Health check |
+| `POST` | `/sessions` | Create a chat session |
+| `GET` | `/sessions` | List chat sessions |
+| `DELETE` | `/sessions/{session_id}` | Delete a chat session |
+| `POST` | `/documents/upload` | Upload and index a PDF |
+| `GET` | `/documents` | List uploaded documents |
+| `GET` | `/documents/{document_id}` | Get document metadata |
+| `DELETE` | `/documents/{document_id}` | Delete a document |
+| `POST` | `/chat` | Ask a question against indexed PDFs |
 
----
+Example chat request:
 
-# 💡 Example Questions
-
-- Summarize this research paper.
-- What are the key findings?
-- Explain the methodology used.
-- What conclusions does the author draw?
-- Compare chapter 2 and chapter 5.
-- List all important dates mentioned.
-- Give me a concise summary.
-
----
-
-# 🎯 Skills Demonstrated
-
-- Retrieval-Augmented Generation (RAG)
-- Large Language Models (LLMs)
-- Semantic Search
-- Vector Databases
-- Embedding Models
-- Prompt Engineering
-- FastAPI Development
-- React + TypeScript
-- REST API Design
-- SQLAlchemy ORM
-- Database Design
-- Full-Stack AI Development
-
----
-
-# 🔮 Future Enhancements
-
-- Hybrid Search (BM25 + Dense Retrieval)
-- OCR support for scanned PDFs
-- Multi-user authentication
-- Streaming responses
-- PDF annotations
-- Document citations with page numbers
-- Docker deployment
-- Kubernetes support
-- Cloud deployment
-- Redis caching
-
----
-
-# 📷 Screenshots
-
-Add screenshots here after deployment.
-
-Example:
-
-```
-Home Page
-
-Upload PDF
-
-Chat Interface
-
-Response with Sources
+```json
+{
+  "session_id": 1,
+  "question": "Summarize this document in 5 bullet points."
+}
 ```
 
----
+Example chat response:
 
-# 🤝 Contributing
+```json
+{
+  "answer": "The document explains...",
+  "confidence_score": 0.82,
+  "sources": [
+    {
+      "document_id": 1,
+      "page": 2,
+      "text": "Relevant source text..."
+    }
+  ]
+}
+```
 
-Contributions are welcome!
+## Current MVP Status
 
-If you'd like to improve the project, feel free to fork the repository, create a feature branch, and submit a pull request.
+Completed:
 
----
+- Product branding as HyperRAG Engine
+- Welcome screen with example prompts
+- Markdown rendering for answers
+- Cleaner source cards with expand/collapse
+- Frontend streaming-style answer reveal
+- Loading and progress states
+- Basic responsive design
+- Improved frontend and backend error handling
+- TypeScript contracts for chat and documents
+- Deployment-friendly frontend API base URL
 
-# 📜 License
+Known limitation:
 
-This project is licensed under the MIT License.
+- The current answer reveal is implemented on the frontend after the backend response completes. True token streaming from the backend is planned for a later sprint.
 
----
+## Roadmap
 
-# 👨‍💻 Author
+### Sprint 1: UI/UX
+
+- Completed: branding, welcome screen, markdown answers, source cards, loading states, responsive basics
+- Next: screenshots, visual QA, accessibility pass
+
+### Sprint 2: AI Features
+
+- Backend token streaming
+- Quick actions: summarize, quiz, flashcards
+- Better confidence calibration
+- Improved retrieval ranking
+- Hybrid retrieval with sparse + dense search
+
+### Sprint 3: Production
+
+- Deploy frontend
+- Deploy backend
+- Configure production environment variables
+- Test PDF uploads in production
+- Test chat and citations in production
+- Fix deployment-specific CORS, file path, and storage issues
+
+### Sprint 4: Portfolio Polish
+
+- Add screenshots and GIF demo
+- Add live demo link
+- Add architecture image
+- Clean sample data and generated artifacts
+- Add a short demo video
+
+## Testing
+
+Frontend production build:
+
+```bash
+cd frontend
+npm run build
+```
+
+Backend tests:
+
+```bash
+cd backend
+pytest
+```
+
+Backend syntax check example:
+
+```bash
+python -m py_compile app/services/rag_service.py
+```
+
+## Skills Demonstrated
+
+- Full-stack AI application development
+- Retrieval-Augmented Generation
+- Semantic search and vector databases
+- Prompt construction and grounding
+- Source attribution and confidence display
+- FastAPI API design
+- React + TypeScript frontend engineering
+- State management with React Query
+- Document ingestion pipeline design
+- Deployment-aware configuration
+
+## Author
 
 **Prajwal Vitkar**
 
-AI & Data Science Engineering Student
+AI and Data Science Engineering Student
 
-- 💼 LinkedIn: https://linkedin.com/in/prajwalvitkar
-- 💻 GitHub: https://github.com/CtrlAltDefeattt
+- LinkedIn: https://linkedin.com/in/prajwalvitkar
+- GitHub: https://github.com/CtrlAltDefeattt
 
----
+## License
 
-⭐ If you found this project useful, consider giving it a star!
+This project is intended to be released under the MIT License. Add a `LICENSE` file before publishing the repository publicly.
